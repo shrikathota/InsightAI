@@ -17,4 +17,8 @@ public interface MeetingRepository extends JpaRepository<Meeting, Long> {
     
     @Query("SELECT m FROM Meeting m WHERE m.createdBy = :user OR :role = 'ADMIN'")
     List<Meeting> findByCreatedByOrRole(@Param("user") User user, @Param("role") Role role);
+
+    long countByCreatedBy(User user);
+
+    long countByCreatedByAndSummaryIsNotNull(User user);
 }

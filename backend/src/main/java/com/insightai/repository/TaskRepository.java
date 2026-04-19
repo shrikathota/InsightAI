@@ -18,4 +18,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     
     @Query("SELECT t FROM Task t WHERE t.meeting.createdBy = :user OR t.assignedTo = :user")
     List<Task> findByMeeting_CreatedByOrAssignedTo(@Param("user") User user);
+
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.meeting.createdBy = :user OR t.assignedTo = :user")
+    long countByMeeting_CreatedByOrAssignedTo(@Param("user") User user);
 }

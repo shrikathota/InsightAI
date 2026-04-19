@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import axiosInstance from '@/lib/api';
 
 export default function ProfilePage() {
-  const { user, setUser } = useAuth();
+  const { user, checkAuth } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,6 +21,12 @@ export default function ProfilePage() {
     confirmPassword: ''
   });
 
+  const [stats, setStats] = useState({
+    totalMeetings: 0,
+    aiSummaries: 0,
+    tasksCreated: 0
+  });
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -30,8 +36,24 @@ export default function ProfilePage() {
         newPassword: '',
         confirmPassword: ''
       });
+      fetchProfile();
     }
   }, [user]);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await axiosInstance.get('/api/user/profile');
+      if (response.data.stats) {
+        setStats({
+          totalMeetings: response.data.stats.totalMeetings || 0,
+          aiSummaries: response.data.stats.aiSummaries || 0,
+          tasksCreated: response.data.stats.tasksCreated || 0
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch profile stats', err);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +99,7 @@ export default function ProfilePage() {
       }
 
       // Update user context
-      setUser(response.data.user);
+      await checkAuth();
       
       setSuccess('Profile updated successfully!');
       setIsEditing(false);
@@ -328,7 +350,7 @@ export default function ProfilePage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-2xl font-bold">{stats.totalMeetings}</p>
                   <p className="text-sm text-muted-foreground">Total Meetings</p>
                 </div>
               </div>
@@ -342,7 +364,7 @@ export default function ProfilePage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-2xl font-bold">{stats.aiSummaries}</p>
                   <p className="text-sm text-muted-foreground">AI Summaries</p>
                 </div>
               </div>
@@ -356,7 +378,7 @@ export default function ProfilePage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-2xl font-bold">{stats.tasksCreated}</p>
                   <p className="text-sm text-muted-foreground">Tasks Created</p>
                 </div>
               </div>

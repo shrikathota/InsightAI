@@ -3,6 +3,8 @@ package com.insightai.controller;
 import com.insightai.dto.UpdateProfileRequest;
 import com.insightai.entity.User;
 import com.insightai.repository.UserRepository;
+import com.insightai.repository.MeetingRepository;
+import com.insightai.repository.TaskRepository;
 import com.insightai.security.JwtTokenProvider;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,8 @@ import java.util.Map;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final MeetingRepository meetingRepository;
+    private final TaskRepository taskRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -36,6 +40,12 @@ public class UserController {
         response.put("email", user.getEmail());
         response.put("role", user.getRole());
         response.put("createdAt", user.getCreatedAt());
+
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("totalMeetings", meetingRepository.countByCreatedBy(user));
+        stats.put("aiSummaries", meetingRepository.countByCreatedByAndSummaryIsNotNull(user));
+        stats.put("tasksCreated", taskRepository.countByMeeting_CreatedByOrAssignedTo(user));
+        response.put("stats", stats);
 
         return ResponseEntity.ok(response);
     }
